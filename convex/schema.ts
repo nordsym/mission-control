@@ -2,6 +2,20 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  documents: defineTable({
+    title: v.string(),
+    description: v.string(),
+    filePath: v.string(),
+    url: v.optional(v.string()),
+    type: v.union(
+      v.literal("research"),
+      v.literal("report"),
+      v.literal("template")
+    ),
+    createdAt: v.number(),
+  }).index("by_createdAt", ["createdAt"])
+    .index("by_type", ["type"]),
+
   activities: defineTable({
     timestamp: v.number(),
     type: v.union(
