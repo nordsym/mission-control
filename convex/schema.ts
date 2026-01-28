@@ -39,13 +39,38 @@ export default defineSchema({
     .index("by_status", ["status"]),
 
   approvals: defineTable({
-    activityId: v.id("activities"),
-    requestedAt: v.number(),
+    type: v.union(
+      v.literal("email"),
+      v.literal("lead"),
+      v.literal("meeting"),
+      v.literal("task"),
+      v.literal("other")
+    ),
+    title: v.string(),
+    content: v.string(),
+    createdBy: v.string(),
+    createdAt: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("approved"),
+      v.literal("rejected")
+    ),
     resolvedAt: v.optional(v.number()),
-    resolution: v.optional(v.union(v.literal("approved"), v.literal("rejected"))),
-    resolvedBy: v.optional(v.string()),
-  }).index("by_activity", ["activityId"])
-    .index("by_requested", ["requestedAt"]),
+    metadata: v.optional(v.object({
+      priority: v.optional(v.union(
+        v.literal("high"),
+        v.literal("medium"),
+        v.literal("low")
+      )),
+      recipient: v.optional(v.string()),
+      subject: v.optional(v.string()),
+      leadScore: v.optional(v.number()),
+      meetingTime: v.optional(v.string()),
+      editedContent: v.optional(v.string()),
+    })),
+  }).index("by_status", ["status"])
+    .index("by_type", ["type"])
+    .index("by_createdAt", ["createdAt"]),
 
   commands: defineTable({
     text: v.string(),

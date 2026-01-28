@@ -1,29 +1,31 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// List all pending approvals with activity data
+// List all pending approvals (embedded data structure)
 export const listPending = query({
   handler: async (ctx) => {
     const approvals = await ctx.db
       .query("approvals")
+      .withIndex("by_status", (q) => q.eq("status", "pending"))
       .order("desc")
       .collect();
-    
-    const pending = approvals.filter(a => !a.resolution);
-    
-    // Fetch associated activities
-    const withActivities = await Promise.all(
-      pending.map(async (approval) => {
-        const activity = await ctx.db.get(approval.activityId);
-        return { ...approval, activity };
-      })
-    );
-    
-    return withActivities;
+
+    // Transform to format expected by frontend
+    return approvals.map((approval) => ({
+      ...approval,
+      requestedAt: approval.createdAt,
+      activity: {
+        _id: approval._id,
+        title: approval.title,
+        description: approval.content,
+        type: approval.type,
+        metadata: approval.metadata,
+      },
+    }));
   },
 });
 
-// List all approvals (not just pending)
+// List all approvals with optional limit
 export const list = query({
   args: {
     limit: v.optional(v.number()),
@@ -33,45 +35,22 @@ export const list = query({
       .query("approvals")
       .order("desc")
       .take(args.limit ?? 100);
-    
-    const withActivities = await Promise.all(
-      approvals.map(async (approval) => {
-        const activity = await ctx.db.get(approval.activityId);
-        return { ...approval, activity };
-      })
-    );
-    
-    return withActivities;
+
+    return approvals.map((approval) => ({
+      ...approval,
+      requestedAt: approval.createdAt,
+      activity: {
+        _id: approval._id,
+        title: approval.title,
+        description: approval.content,
+        type: approval.type,
+        metadata: approval.metadata,
+      },
+    }));
   },
 });
 
-// Resolve (approve/reject) a single approval
-export const resolve = mutation({
-  args: {
-    id: v.id("approvals"),
-    resolution: v.union(v.literal("approved"), v.literal("rejected")),
-    resolvedBy: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const approval = await ctx.db.get(args.id);
-    if (!approval) throw new Error("Approval not found");
-    
-    await ctx.db.patch(args.id, {
-      resolution: args.resolution,
-      resolvedAt: Date.now(),
-      resolvedBy: args.resolvedBy ?? "user",
-    });
-    
-    // Update the activity status
-    await ctx.db.patch(approval.activityId, {
-      status: args.resolution,
-    });
-    
-    return { success: true };
-  },
-});
-
-// Approve shortcut
+// Approve a single approval
 export const approve = mutation({
   args: {
     id: v.id("approvals"),
@@ -79,22 +58,17 @@ export const approve = mutation({
   handler: async (ctx, args) => {
     const approval = await ctx.db.get(args.id);
     if (!approval) throw new Error("Approval not found");
-    
+
     await ctx.db.patch(args.id, {
-      resolution: "approved",
-      resolvedAt: Date.now(),
-      resolvedBy: "user",
-    });
-    
-    await ctx.db.patch(approval.activityId, {
       status: "approved",
+      resolvedAt: Date.now(),
     });
-    
+
     return { success: true };
   },
 });
 
-// Reject shortcut
+// Reject a single approval
 export const reject = mutation({
   args: {
     id: v.id("approvals"),
@@ -102,48 +76,17 @@ export const reject = mutation({
   handler: async (ctx, args) => {
     const approval = await ctx.db.get(args.id);
     if (!approval) throw new Error("Approval not found");
-    
+
     await ctx.db.patch(args.id, {
-      resolution: "rejected",
-      resolvedAt: Date.now(),
-      resolvedBy: "user",
-    });
-    
-    await ctx.db.patch(approval.activityId, {
       status: "rejected",
+      resolvedAt: Date.now(),
     });
-    
+
     return { success: true };
   },
 });
 
-// Bulk resolve multiple approvals
-export const bulkResolve = mutation({
-  args: {
-    ids: v.array(v.id("approvals")),
-    resolution: v.union(v.literal("approved"), v.literal("rejected")),
-  },
-  handler: async (ctx, args) => {
-    for (const id of args.ids) {
-      const approval = await ctx.db.get(id);
-      if (!approval) continue;
-      
-      await ctx.db.patch(id, {
-        resolution: args.resolution,
-        resolvedAt: Date.now(),
-        resolvedBy: "user",
-      });
-      
-      await ctx.db.patch(approval.activityId, {
-        status: args.resolution,
-      });
-    }
-    
-    return { success: true, count: args.ids.length };
-  },
-});
-
-// Bulk approve
+// Bulk approve multiple approvals
 export const bulkApprove = mutation({
   args: {
     ids: v.array(v.id("approvals")),
@@ -152,23 +95,18 @@ export const bulkApprove = mutation({
     for (const id of args.ids) {
       const approval = await ctx.db.get(id);
       if (!approval) continue;
-      
+
       await ctx.db.patch(id, {
-        resolution: "approved",
-        resolvedAt: Date.now(),
-        resolvedBy: "user",
-      });
-      
-      await ctx.db.patch(approval.activityId, {
         status: "approved",
+        resolvedAt: Date.now(),
       });
     }
-    
+
     return { success: true, count: args.ids.length };
   },
 });
 
-// Bulk reject
+// Bulk reject multiple approvals
 export const bulkReject = mutation({
   args: {
     ids: v.array(v.id("approvals")),
@@ -177,23 +115,18 @@ export const bulkReject = mutation({
     for (const id of args.ids) {
       const approval = await ctx.db.get(id);
       if (!approval) continue;
-      
+
       await ctx.db.patch(id, {
-        resolution: "rejected",
-        resolvedAt: Date.now(),
-        resolvedBy: "user",
-      });
-      
-      await ctx.db.patch(approval.activityId, {
         status: "rejected",
+        resolvedAt: Date.now(),
       });
     }
-    
+
     return { success: true, count: args.ids.length };
   },
 });
 
-// Update an approval's activity content (for edit mode)
+// Update approval content (for edit mode)
 export const update = mutation({
   args: {
     id: v.id("approvals"),
@@ -203,19 +136,24 @@ export const update = mutation({
   handler: async (ctx, args) => {
     const approval = await ctx.db.get(args.id);
     if (!approval) throw new Error("Approval not found");
-    
+
     const updates: Record<string, unknown> = {};
     if (args.content !== undefined) {
-      updates.description = args.content;
+      updates.content = args.content;
+      // Also store edited version in metadata
+      updates.metadata = {
+        ...approval.metadata,
+        editedContent: args.content,
+      };
     }
     if (args.metadata !== undefined) {
-      updates.metadata = args.metadata;
+      updates.metadata = { ...approval.metadata, ...args.metadata };
     }
-    
+
     if (Object.keys(updates).length > 0) {
-      await ctx.db.patch(approval.activityId, updates);
+      await ctx.db.patch(args.id, updates);
     }
-    
+
     return { success: true };
   },
 });
@@ -224,29 +162,28 @@ export const update = mutation({
 export const getStats = query({
   handler: async (ctx) => {
     const approvals = await ctx.db.query("approvals").collect();
-    const pending = approvals.filter(a => !a.resolution);
-    const approved = approvals.filter(a => a.resolution === "approved");
-    const rejected = approvals.filter(a => a.resolution === "rejected");
-    
-    // Calculate today's approvals
+    const pending = approvals.filter((a) => a.status === "pending");
+    const approved = approvals.filter((a) => a.status === "approved");
+    const rejected = approvals.filter((a) => a.status === "rejected");
+
+    // Calculate today's stats
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayStart = today.getTime();
-    
-    const approvedToday = approved.filter(a => 
-      a.resolvedAt && a.resolvedAt >= todayStart
+
+    const approvedToday = approved.filter(
+      (a) => a.resolvedAt && a.resolvedAt >= todayStart
     ).length;
-    
-    const rejectedToday = rejected.filter(a =>
-      a.resolvedAt && a.resolvedAt >= todayStart
+
+    const rejectedToday = rejected.filter(
+      (a) => a.resolvedAt && a.resolvedAt >= todayStart
     ).length;
-    
+
     // Calculate rejection rate
     const total = approved.length + rejected.length;
-    const rejectionRate = total > 0 
-      ? Math.round((rejected.length / total) * 100) 
-      : 0;
-    
+    const rejectionRate =
+      total > 0 ? Math.round((rejected.length / total) * 100) : 0;
+
     return {
       pending: pending.length,
       approved: approved.length,
@@ -259,7 +196,7 @@ export const getStats = query({
   },
 });
 
-// Create a new approval (for agent use)
+// Create a new approval (for agents to submit)
 export const create = mutation({
   args: {
     type: v.union(
@@ -275,31 +212,19 @@ export const create = mutation({
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    // Map approval type to activity type
-    const activityType = args.type === "email" || args.type === "lead" || args.type === "meeting" 
-      ? "approval_request" 
-      : "task";
-    
-    // Create the activity
-    const activityId = await ctx.db.insert("activities", {
-      timestamp: Date.now(),
-      type: activityType,
+    const approvalId = await ctx.db.insert("approvals", {
+      type: args.type,
       title: args.title,
-      description: args.content,
-      status: "pending_approval",
+      content: args.content,
+      createdBy: args.createdBy ?? "agent",
+      createdAt: Date.now(),
+      status: "pending",
       metadata: {
+        priority: "medium",
         ...args.metadata,
-        approvalType: args.type,
-        createdBy: args.createdBy ?? "agent",
       },
     });
-    
-    // Create the approval
-    const approvalId = await ctx.db.insert("approvals", {
-      activityId,
-      requestedAt: Date.now(),
-    });
-    
-    return { approvalId, activityId };
+
+    return { approvalId };
   },
 });

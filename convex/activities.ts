@@ -74,14 +74,6 @@ export const create = mutation({
       timestamp: Date.now(),
     });
     
-    // If it's an approval request, create an approval record
-    if (args.status === "pending_approval") {
-      await ctx.db.insert("approvals", {
-        activityId: id,
-        requestedAt: Date.now(),
-      });
-    }
-    
     return id;
   },
 });

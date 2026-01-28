@@ -86,13 +86,39 @@ export const seedData = mutation({
       activityIds.push(id);
     }
 
-    // Create approvals for pending activities
-    const pendingActivities = activities.filter(a => a.status === "pending_approval");
-    for (let i = 0; i < pendingActivities.length; i++) {
-      await ctx.db.insert("approvals", {
-        activityId: activityIds[activities.indexOf(pendingActivities[i])] as any,
-        requestedAt: pendingActivities[i].timestamp,
-      });
+    // Seed sample approvals (embedded structure for Symbot Sales Agent)
+    const approvals = [
+      {
+        type: "email" as const,
+        title: "Follow-up: Q1 Partnership Proposal",
+        content: "Hej Anna,\n\nTack för ett bra möte förra veckan! Jag ville följa upp angående vårt samarbetsförslag för Q1.\n\nSom vi diskuterade kan NordSym erbjuda:\n• AI-driven kundsegmentering\n• Automatiserad lead scoring\n• Integrerad pipeline-hantering\n\nSkulle det passa med ett uppföljningsmöte nästa vecka?\n\nVänliga hälsningar,\nGustav",
+        createdBy: "Sales Agent",
+        createdAt: now - 2 * hour,
+        status: "pending" as const,
+        metadata: { priority: "high" as const, recipient: "anna.lindberg@techcorp.se", subject: "Following up on our meeting" },
+      },
+      {
+        type: "lead" as const,
+        title: "New Lead: Marcus Eriksson, Volvo Group",
+        content: "LEAD PROFILE\n━━━━━━━━━━━━━━━━━━━━━━━━\n\nName: Marcus Eriksson\nTitle: Head of Digital Innovation\nCompany: Volvo Group\n\nSCORING BREAKDOWN\n• Company fit: 95/100\n• Engagement signals: 82/100\n• Budget authority: 85/100\n• Timeline: Medium-term (Q2)\n\nRECOMMENDED ACTION\nInitial outreach via LinkedIn, focus on automotive AI use cases.",
+        createdBy: "Research Agent",
+        createdAt: now - 4 * hour,
+        status: "pending" as const,
+        metadata: { priority: "high" as const, leadScore: 87, recipient: "marcus.eriksson@volvo.com", subject: "Lead Score: 87/100" },
+      },
+      {
+        type: "meeting" as const,
+        title: "Book demo: Klarna Innovation Team",
+        content: "MEETING REQUEST\n━━━━━━━━━━━━━━━━━━━━━━━━\n\nType: Product Demo\nDate: Thursday, 30 Jan 2025\nTime: 14:00-15:00 CET\nLocation: Google Meet\n\nATTENDEES\n• Sofia Berg (Head of Innovation)\n• Erik Johansson (Tech Lead)\n• You (Gustav Hemmingsson)\n\nAGENDA\n1. NordSym platform overview (15 min)\n2. Live demo: AI agent capabilities (25 min)\n3. Q&A and next steps (20 min)",
+        createdBy: "Calendar Agent",
+        createdAt: now - 6 * hour,
+        status: "pending" as const,
+        metadata: { priority: "medium" as const, meetingTime: "2025-01-30T14:00:00+01:00", recipient: "sofia.berg@klarna.com", subject: "Demo scheduled for Thursday 14:00" },
+      },
+    ];
+
+    for (const approval of approvals) {
+      await ctx.db.insert("approvals", approval);
     }
 
     // Seed some commands
