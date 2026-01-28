@@ -5,9 +5,18 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id, Doc } from "../../../convex/_generated/dataModel";
 
-type Activity = Doc<"activities">;
+// Embedded activity data structure from listPending
+type EmbeddedActivity = {
+  _id: string;
+  title: string;
+  description: string;
+  type: string;
+  metadata?: Record<string, unknown>;
+};
+
 type Approval = Doc<"approvals"> & {
-  activity: Activity | null;
+  requestedAt: number;
+  activity: EmbeddedActivity | null;
 };
 
 // Type icons mapping
@@ -207,33 +216,33 @@ export default function ApprovalsPage() {
     return new Date(timestamp).toLocaleDateString("sv-SE");
   };
 
-  const getApprovalType = (activity: Activity | null): string => {
+  const getApprovalType = (activity: EmbeddedActivity | null): string => {
     if (!activity) return "other";
-    const meta = activity.metadata as Record<string, unknown> | undefined;
+    const meta = activity.metadata;
     return (meta?.approvalType as string) ?? activity.type ?? "other";
   };
 
-  const getPriority = (activity: Activity | null): string => {
+  const getPriority = (activity: EmbeddedActivity | null): string => {
     if (!activity) return "medium";
-    const meta = activity.metadata as Record<string, unknown> | undefined;
+    const meta = activity.metadata;
     return (meta?.priority as string) ?? "medium";
   };
 
-  const getCreatedBy = (activity: Activity | null): string => {
+  const getCreatedBy = (activity: EmbeddedActivity | null): string => {
     if (!activity) return "Agent";
-    const meta = activity.metadata as Record<string, unknown> | undefined;
+    const meta = activity.metadata;
     return (meta?.createdBy as string) ?? "Agent";
   };
 
-  const getRecipient = (activity: Activity | null): string => {
+  const getRecipient = (activity: EmbeddedActivity | null): string => {
     if (!activity) return "-";
-    const meta = activity.metadata as Record<string, unknown> | undefined;
+    const meta = activity.metadata;
     return (meta?.recipient as string) ?? (meta?.to as string) ?? "-";
   };
 
-  const getSubject = (activity: Activity | null): string => {
+  const getSubject = (activity: EmbeddedActivity | null): string => {
     if (!activity) return "-";
-    const meta = activity.metadata as Record<string, unknown> | undefined;
+    const meta = activity.metadata;
     return (meta?.subject as string) ?? "-";
   };
 
