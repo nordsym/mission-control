@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: "◆" },
@@ -22,10 +24,16 @@ export function Navigation() {
     <nav className="fixed left-0 top-0 h-full w-16 md:w-56 bg-surface border-r border-border flex flex-col z-40">
       <div className="p-4 border-b border-border">
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan to-purple flex items-center justify-center font-bold text-base">
-            S
-          </div>
-          <span className="hidden md:block font-semibold text-lg">Mission Control</span>
+          <Image 
+            src="/nordsym-logo.svg" 
+            alt="NordSym" 
+            width={32} 
+            height={32}
+            className="rounded-lg"
+          />
+          <span className="hidden md:block font-semibold text-lg font-headlines">
+            Mission Control
+          </span>
         </Link>
       </div>
       
@@ -56,7 +64,8 @@ export function Navigation() {
         })}
       </div>
       
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border space-y-3">
+        <ThemeToggle />
         <div className="flex items-center gap-2 text-text-muted text-sm">
           <div className="w-2 h-2 rounded-full bg-green animate-pulse"></div>
           <span className="hidden md:block">Agent Online</span>

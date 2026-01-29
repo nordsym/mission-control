@@ -1,24 +1,88 @@
 @import "tailwindcss";
 
+/* === FONTS === */
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* === TAILWIND THEME EXTENSION === */
 @theme {
-  --color-base: #050608;
-  --color-surface: #0d0f12;
-  --color-surface-2: #1a1d22;
-  --color-border: #2a2d35;
-  --color-text: #e5e7eb;
-  --color-text-muted: #9ca3af;
+  /* Fonts */
+  --font-headlines: 'Comfortaa', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  
+  /* Accents (samma i båda themes) */
   --color-cyan: #00D4FF;
   --color-purple: #9370DB;
   --color-orange: #FF8C00;
+  --color-light-accent: #7dd3fc;
+  
+  /* Status */
   --color-green: #10B981;
   --color-red: #EF4444;
   --color-yellow: #F59E0B;
 }
 
+/* === DARK THEME (Default - Matt Obsidian) === */
+:root {
+  --color-base: #050608;
+  --color-surface: #0d1117;
+  --color-surface-2: #161b22;
+  --color-border: #30363d;
+  --color-text: #FFFFFF;
+  --color-text-secondary: #E2E8F0;
+  --color-text-muted: #CBD5E1;
+  --color-cyan-rgb: 0, 212, 255;
+  --color-base-rgb: 5, 6, 8;
+}
+
+/* === LIGHT THEME (Blåkopia/Arkitekt) === */
+[data-theme='light'] {
+  --color-base: #F0F4F8;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #E2E8F0;
+  --color-border: #CBD5E1;
+  --color-text: #1E293B;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-cyan: #0284C7; /* Blueprint cyan */
+  --color-cyan-rgb: 2, 132, 199;
+  --color-base-rgb: 240, 244, 248;
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --color-base: #F0F4F8;
+    --color-surface: #FFFFFF;
+    --color-surface-2: #E2E8F0;
+    --color-border: #CBD5E1;
+    --color-text: #1E293B;
+    --color-text-secondary: #475569;
+    --color-text-muted: #64748b;
+    --color-cyan: #0284C7;
+    --color-cyan-rgb: 2, 132, 199;
+    --color-base-rgb: 240, 244, 248;
+  }
+}
+
+/* === BASE STYLES === */
 body {
   background-color: var(--color-base);
   color: var(--color-text);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
+  /* Subtil noise-textur (griffeltavla-känsla) */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* Light mode: Blueprint grid overlay */
+[data-theme='light'] body {
+  background-image: 
+    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+h1, h2, h3, h4, h5, h6, .font-headlines {
+  font-family: var(--font-headlines);
 }
 
 /* Custom scrollbar */
@@ -40,6 +104,46 @@ body {
   background: var(--color-text-muted);
 }
 
+/* === BUTTON STYLES (NordSym) === */
+.btn-base {
+  font-weight: 600;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0px 6px 12px rgba(0, 0, 0, 0.25), 
+    0px 2px 4px rgba(0,0,0,0.2), 
+    inset 0px -2px 1px rgba(255,255,255,0.05), 
+    inset 0px 1px 1px rgba(0,0,0,0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-cta {
+  padding: 0.85rem 2.25rem;
+  background: rgba(0, 31, 63, 0.8);
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  backdrop-filter: blur(8px);
+}
+
+.btn-cta:hover {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+}
+
+[data-theme='light'] .btn-cta {
+  background: #0F172A;
+  border-color: #0F172A;
+  color: #FFFFFF;
+}
+
+[data-theme='light'] .btn-cta:hover {
+  background: #0284C7;
+  border-color: #0284C7;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
@@ -52,8 +156,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4); }
-  50% { box-shadow: 0 0 20px 5px rgba(0, 212, 255, 0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--color-cyan-rgb), 0.4); }
+  50% { box-shadow: 0 0 20px 5px rgba(var(--color-cyan-rgb), 0.2); }
 }
 
 @keyframes slideOutRight {

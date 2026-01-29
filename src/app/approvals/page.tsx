@@ -251,7 +251,7 @@ export default function ApprovalsPage() {
       {/* Header with Stats */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-text flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-text flex items-center gap-3 font-headlines">
             📋 Approval Queue
           </h1>
           <p className="text-text-muted mt-1">Sales actions waiting for your decision</p>

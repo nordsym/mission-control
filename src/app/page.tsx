@@ -22,7 +22,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text">Mission Control</h1>
+          <h1 className="text-3xl font-bold text-text font-headlines">Mission Control</h1>
           <p className="text-text-muted mt-1">Your AI agent at a glance</p>
         </div>
         <div className="text-right">
@@ -39,7 +39,7 @@ export default function Dashboard() {
       {/* Today's Summary */}
       {todaySummary && (
         <div className="bg-gradient-to-r from-cyan/10 via-purple/10 to-orange/10 border border-cyan/30 rounded-2xl p-4">
-          <h2 className="text-lg font-semibold text-cyan mb-2">📊 Today&apos;s Summary</h2>
+          <h2 className="text-lg font-semibold text-cyan mb-2 font-headlines">📊 Today&apos;s Summary</h2>
           <p className="text-text text-sm">{todaySummary.summary}</p>
           <div className="flex gap-6 mt-3 text-sm">
             <span className="text-green">✓ {todaySummary.tasksCompleted} tasks</span>
@@ -78,7 +78,7 @@ export default function Dashboard() {
 
       {/* Kanban Board */}
       <div>
-        <h2 className="text-xl font-semibold text-text mb-4">Activity Board</h2>
+        <h2 className="text-xl font-semibold text-text mb-4 font-headlines">Activity Board</h2>
         <KanbanBoard />
       </div>
     </div>

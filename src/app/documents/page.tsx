@@ -47,7 +47,7 @@ export default function DocumentsPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-text">Documents</h1>
+        <h1 className="text-3xl font-bold text-text font-headlines">Documents</h1>
         <p className="text-text-muted mt-1">Research, rapporter och mallar</p>
       </div>
 

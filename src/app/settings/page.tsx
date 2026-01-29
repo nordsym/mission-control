@@ -13,14 +13,14 @@ export default function SettingsPage() {
     <div className="max-w-2xl mx-auto space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-text">Settings</h1>
+        <h1 className="text-3xl font-bold text-text font-headlines">Settings</h1>
         <p className="text-text-muted mt-1">Configure your Mission Control</p>
       </div>
 
       {/* Agent Config */}
       <div className="bg-surface border border-border rounded-xl p-6 space-y-6">
         <div>
-          <h2 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-text mb-4 flex items-center gap-2 font-headlines">
             <span className="text-cyan">◆</span> Agent Configuration
           </h2>
           
@@ -46,7 +46,7 @@ export default function SettingsPage() {
       {/* Integration */}
       <div className="bg-surface border border-border rounded-xl p-6 space-y-6">
         <div>
-          <h2 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-text mb-4 flex items-center gap-2 font-headlines">
             <span className="text-purple">⚡</span> Integration
           </h2>
           
@@ -66,7 +66,7 @@ export default function SettingsPage() {
 
       {/* Status */}
       <div className="bg-surface border border-border rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-text mb-4 flex items-center gap-2 font-headlines">
           <span className="text-green">◉</span> Status
         </h2>
         

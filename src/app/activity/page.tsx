@@ -25,7 +25,7 @@ export default function ActivityPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-text">Activity Feed</h1>
+        <h1 className="text-3xl font-bold text-text font-headlines">Activity Feed</h1>
         <p className="text-text-muted mt-1">Real-time log of your agent&apos;s activities</p>
       </div>
 
