@@ -1,23 +1,5 @@
 @import "tailwindcss";
 
-/* === TAILWIND THEME EXTENSION === */
-@theme {
-  /* Fonts */
-  --font-headlines: 'Comfortaa', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  
-  /* Accents (samma i båda themes) */
-  --color-cyan: #00D4FF;
-  --color-purple: #9370DB;
-  --color-orange: #FF8C00;
-  --color-light-accent: #7dd3fc;
-  
-  /* Status */
-  --color-green: #10B981;
-  --color-red: #EF4444;
-  --color-yellow: #F59E0B;
-}
-
 /* === DARK THEME (Default - Matt Obsidian) === */
 :root {
   --color-base: #050608;
@@ -27,8 +9,17 @@
   --color-text: #FFFFFF;
   --color-text-secondary: #E2E8F0;
   --color-text-muted: #CBD5E1;
+  --color-cyan: #00D4FF;
+  --color-purple: #9370DB;
+  --color-orange: #FF8C00;
+  --color-light-accent: #7dd3fc;
+  --color-green: #10B981;
+  --color-red: #EF4444;
+  --color-yellow: #F59E0B;
   --color-cyan-rgb: 0, 212, 255;
   --color-base-rgb: 5, 6, 8;
+  --font-headlines: 'Comfortaa', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
 /* === LIGHT THEME (Blåkopia/Arkitekt) === */
@@ -40,7 +31,7 @@
   --color-text: #1E293B;
   --color-text-secondary: #475569;
   --color-text-muted: #64748b;
-  --color-cyan: #0284C7; /* Blueprint cyan */
+  --color-cyan: #0284C7;
   --color-cyan-rgb: 2, 132, 199;
   --color-base-rgb: 240, 244, 248;
 }
@@ -61,18 +52,37 @@
   }
 }
 
+/* === TAILWIND THEME === */
+@theme inline {
+  --color-base: var(--color-base);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-cyan: var(--color-cyan);
+  --color-purple: var(--color-purple);
+  --color-orange: var(--color-orange);
+  --color-light-accent: var(--color-light-accent);
+  --color-green: var(--color-green);
+  --color-red: var(--color-red);
+  --color-yellow: var(--color-yellow);
+  --font-headlines: var(--font-headlines);
+  --font-body: var(--font-body);
+}
+
 /* === BASE STYLES === */
 body {
   background-color: var(--color-base);
   color: var(--color-text);
   font-family: var(--font-body);
-  /* Subtil noise-textur (griffeltavla-känsla) */
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 /* Light mode: Blueprint grid overlay */
 [data-theme='light'] body {
-  background-image: 
+  background-image:
     linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
     linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
   background-size: 20px 20px;
@@ -81,6 +91,46 @@ body {
 h1, h2, h3, h4, h5, h6, .font-headlines {
   font-family: var(--font-headlines);
 }
+
+/* === CUSTOM UTILITY CLASSES === */
+/* Background colors */
+.bg-base { background-color: var(--color-base); }
+.bg-surface { background-color: var(--color-surface); }
+.bg-surface-2 { background-color: var(--color-surface-2); }
+.bg-cyan { background-color: var(--color-cyan); }
+.bg-purple { background-color: var(--color-purple); }
+.bg-orange { background-color: var(--color-orange); }
+.bg-green { background-color: var(--color-green); }
+.bg-red { background-color: var(--color-red); }
+.bg-yellow { background-color: var(--color-yellow); }
+
+/* Background with opacity */
+.bg-cyan\/10 { background-color: rgba(var(--color-cyan-rgb), 0.1); }
+.bg-cyan\/20 { background-color: rgba(var(--color-cyan-rgb), 0.2); }
+
+/* Text colors */
+.text-text { color: var(--color-text); }
+.text-text-secondary { color: var(--color-text-secondary); }
+.text-text-muted { color: var(--color-text-muted); }
+.text-cyan { color: var(--color-cyan); }
+.text-purple { color: var(--color-purple); }
+.text-orange { color: var(--color-orange); }
+.text-green { color: var(--color-green); }
+.text-red { color: var(--color-red); }
+.text-yellow { color: var(--color-yellow); }
+
+/* Border colors */
+.border-border { border-color: var(--color-border); }
+.border-cyan { border-color: var(--color-cyan); }
+.border-cyan\/30 { border-color: rgba(var(--color-cyan-rgb), 0.3); }
+.border-cyan\/50 { border-color: rgba(var(--color-cyan-rgb), 0.5); }
+
+/* Hover states */
+.hover\:text-text:hover { color: var(--color-text); }
+.hover\:text-cyan:hover { color: var(--color-cyan); }
+.hover\:bg-surface-2:hover { background-color: var(--color-surface-2); }
+.hover\:bg-border:hover { background-color: var(--color-border); }
+.hover\:border-cyan\/50:hover { border-color: rgba(var(--color-cyan-rgb), 0.5); }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -106,10 +156,10 @@ h1, h2, h3, h4, h5, h6, .font-headlines {
   font-weight: 600;
   border-radius: 9999px;
   transition: all 0.3s ease;
-  box-shadow: 
-    0px 6px 12px rgba(0, 0, 0, 0.25), 
-    0px 2px 4px rgba(0,0,0,0.2), 
-    inset 0px -2px 1px rgba(255,255,255,0.05), 
+  box-shadow:
+    0px 6px 12px rgba(0, 0, 0, 0.25),
+    0px 2px 4px rgba(0,0,0,0.2),
+    inset 0px -2px 1px rgba(255,255,255,0.05),
     inset 0px 1px 1px rgba(0,0,0,0.1);
   display: inline-flex;
   align-items: center;
