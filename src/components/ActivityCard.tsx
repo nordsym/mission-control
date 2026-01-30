@@ -63,10 +63,15 @@ export function ActivityCard({ activity }: { activity: Activity }) {
         
         <div className="text-right shrink-0">
           <span className="text-xs text-text-muted">{timeAgo}</span>
-          <div className="mt-1">
+          <div className="mt-1 flex flex-col items-end gap-1">
             <span className={`text-xs px-2 py-0.5 rounded-full bg-surface-2 ${typeColors[activity.type]}`}>
               {activity.type}
             </span>
+            {activity.source && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-purple/20 text-purple">
+                {activity.source}
+              </span>
+            )}
           </div>
         </div>
       </div>

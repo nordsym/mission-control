@@ -137,8 +137,15 @@ export const seedData = mutation({
     await ctx.db.insert("dailySummaries", {
       date: today,
       tasksCompleted: 3,
+      commitsCount: 2,
+      researchCount: 1,
+      notificationsCount: 0,
+      approvalRequestsCount: 1,
       approvalsProcessed: 1,
+      approvalsApproved: 1,
+      approvalsRejected: 0,
       summary: "Productive day! Completed documentation updates, shipped auth feature, and researched payment providers.",
+      highlights: ["Documentation updates", "Auth feature shipped"],
     });
 
     // Seed settings

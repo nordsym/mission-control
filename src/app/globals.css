@@ -236,3 +236,8 @@ h1, h2, h3, h4, h5, h6, .font-headlines {
 .animate-slideOutLeft {
   animation: slideOutLeft 0.3s ease-out forwards;
 }
+
+/* Safe area for iOS devices */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

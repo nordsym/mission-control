@@ -8,14 +8,14 @@ import { Id, Doc } from "../../../convex/_generated/dataModel";
 // Embedded activity data structure from listPending
 type EmbeddedActivity = {
   _id: string;
-  title: string;
-  description: string;
-  type: string;
+  title?: string;
+  description?: string;
+  type?: string;
   metadata?: Record<string, unknown>;
 };
 
 type Approval = Doc<"approvals"> & {
-  requestedAt: number;
+  requestedAt?: number;
   activity: EmbeddedActivity | null;
 };
 
@@ -45,6 +45,7 @@ export default function ApprovalsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState("");
   const [animatingIds, setAnimatingIds] = useState<Map<Id<"approvals">, "approved" | "rejected">>(new Map());
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
   
   const previewRef = useRef<HTMLTextAreaElement>(null);
   const queueRef = useRef<HTMLDivElement>(null);
@@ -64,7 +65,7 @@ export default function ApprovalsPage() {
   // Update edited content when current item changes
   useEffect(() => {
     if (currentItem?.activity) {
-      setEditedContent(currentItem.activity.description);
+      setEditedContent(currentItem.activity.description ?? "");
     }
   }, [currentItem]);
 
@@ -208,7 +209,8 @@ export default function ApprovalsPage() {
     }, ids.length * 100 + 300);
   };
 
-  const formatTime = (timestamp: number) => {
+  const formatTime = (timestamp?: number) => {
+    if (!timestamp) return "-";
     const diff = Date.now() - timestamp;
     if (diff < 60000) return "Just now";
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
@@ -317,7 +319,7 @@ export default function ApprovalsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Queue Panel */}
         <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-border flex justify-between items-center">
+          <div className="px-4 md:px-5 py-4 border-b border-border flex justify-between items-center">
             <h2 className="font-semibold text-text flex items-center gap-2">
               📋 Pending Items
               {items.length > 0 && (
@@ -336,7 +338,7 @@ export default function ApprovalsPage() {
             )}
           </div>
           
-          <div ref={queueRef} className="max-h-[600px] overflow-y-auto">
+          <div ref={queueRef} className="max-h-[60vh] lg:max-h-[600px] overflow-y-auto">
             {items.length === 0 ? (
               <div className="py-16 text-center">
                 <div className="text-5xl mb-4">🎉</div>
@@ -354,9 +356,12 @@ export default function ApprovalsPage() {
                   <div
                     key={item._id}
                     data-index={index}
-                    onClick={() => setCurrentIndex(index)}
+                    onClick={() => {
+                      setCurrentIndex(index);
+                      setShowMobilePreview(true);
+                    }}
                     className={`
-                      px-5 py-4 border-b border-border cursor-pointer transition-all
+                      px-4 md:px-5 py-4 border-b border-border cursor-pointer transition-all
                       ${index === currentIndex ? "bg-purple/10 border-l-2 border-l-purple" : "hover:bg-surface-2"}
                       ${selectedIds.has(item._id) ? "bg-cyan/5" : ""}
                       ${animState === "approved" ? "animate-slideOutRight" : ""}
@@ -375,7 +380,7 @@ export default function ApprovalsPage() {
                       />
                       
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="text-lg">{icon}</span>
                           <span className="font-medium text-text truncate">{item.activity?.title || "Untitled"}</span>
                           <span className={`text-[10px] px-2 py-0.5 rounded-full border uppercase font-semibold ${priorityColors[priority]}`}>
@@ -403,8 +408,8 @@ export default function ApprovalsPage() {
           </div>
         </div>
 
-        {/* Preview Panel */}
-        <div className="bg-surface border border-border rounded-2xl overflow-hidden flex flex-col">
+        {/* Desktop Preview Panel */}
+        <div className="hidden lg:flex bg-surface border border-border rounded-2xl overflow-hidden flex-col">
           <div className="px-5 py-4 border-b border-border flex justify-between items-center">
             <h2 className="font-semibold text-text flex items-center gap-2">
               👁️ Preview
@@ -425,100 +430,267 @@ export default function ApprovalsPage() {
                 <p className="text-xs mt-2 opacity-60">Use keyboard or click to navigate</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {/* Type Badge */}
-                <div className="inline-flex items-center gap-2 bg-surface-2 px-3 py-1.5 rounded-full text-sm">
-                  {typeIcons[getApprovalType(currentItem.activity)] || "📄"}
-                  <span className="capitalize">{getApprovalType(currentItem.activity)}</span>
-                </div>
-                
-                {/* Title */}
-                <h3 className="text-xl font-semibold text-text">
-                  {currentItem.activity?.title || "Untitled"}
-                </h3>
-                
-                {/* Meta Info */}
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-text-muted">To:</span>
-                    <span className="ml-2 text-text">{getRecipient(currentItem.activity)}</span>
-                  </div>
-                  <div>
-                    <span className="text-text-muted">Subject:</span>
-                    <span className="ml-2 text-text">{getSubject(currentItem.activity)}</span>
-                  </div>
-                  <div>
-                    <span className="text-text-muted">Agent:</span>
-                    <span className="ml-2 text-text">{getCreatedBy(currentItem.activity)}</span>
-                  </div>
-                  <div>
-                    <span className="text-text-muted">Created:</span>
-                    <span className="ml-2 text-text">{formatTime(currentItem.requestedAt)}</span>
-                  </div>
-                </div>
-                
-                {/* Content */}
-                {isEditing ? (
-                  <textarea
-                    ref={previewRef}
-                    value={editedContent}
-                    onChange={(e) => setEditedContent(e.target.value)}
-                    className="w-full h-64 bg-surface-2 border-2 border-cyan rounded-xl p-4 text-text resize-none focus:outline-none"
-                    placeholder="Edit content..."
-                  />
-                ) : (
-                  <div className="bg-surface-2 rounded-xl p-4 text-text whitespace-pre-wrap leading-relaxed">
-                    {currentItem.activity?.description || "No content"}
-                  </div>
-                )}
-              </div>
+              <PreviewContent
+                currentItem={currentItem}
+                isEditing={isEditing}
+                editedContent={editedContent}
+                setEditedContent={setEditedContent}
+                previewRef={previewRef}
+                typeIcons={typeIcons}
+                getApprovalType={getApprovalType}
+                getRecipient={getRecipient}
+                getSubject={getSubject}
+                getCreatedBy={getCreatedBy}
+                formatTime={formatTime}
+              />
             )}
           </div>
           
           {/* Action Buttons */}
           {currentItem && (
-            <div className="px-5 py-4 border-t border-border flex gap-3 justify-end">
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    className="px-5 py-3 bg-surface-2 text-text-muted font-medium rounded-xl hover:text-text transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveEdit}
-                    className="px-5 py-3 bg-cyan text-base font-medium rounded-xl hover:bg-cyan/80 transition-all hover:shadow-lg hover:shadow-cyan/20"
-                  >
-                    💾 Save Changes
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-5 py-3 bg-surface-2 text-text font-medium rounded-xl hover:bg-surface-2/80 transition-colors border border-border"
-                  >
-                    ✏️ Edit
-                  </button>
-                  <button
-                    onClick={() => handleReject(currentItem._id)}
-                    className="px-5 py-3 bg-red/10 text-red font-medium rounded-xl hover:bg-red/20 transition-all border border-red/30"
-                  >
-                    ❌ Reject
-                  </button>
-                  <button
-                    onClick={() => handleApprove(currentItem._id)}
-                    className="px-5 py-3 bg-green text-base font-medium rounded-xl hover:bg-green/80 transition-all hover:shadow-lg hover:shadow-green/20"
-                  >
-                    ✅ Approve
-                  </button>
-                </>
-              )}
-            </div>
+            <ActionButtons
+              currentItem={currentItem}
+              isEditing={isEditing}
+              setIsEditing={setIsEditing}
+              handleSaveEdit={handleSaveEdit}
+              handleApprove={handleApprove}
+              handleReject={handleReject}
+            />
           )}
         </div>
       </div>
+
+      {/* Mobile Preview Modal */}
+      {showMobilePreview && currentItem && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-base flex flex-col">
+          {/* Modal Header */}
+          <div className="px-4 py-4 border-b border-border flex items-center gap-3 bg-surface">
+            <button
+              onClick={() => setShowMobilePreview(false)}
+              className="p-2 -ml-2 text-text-muted hover:text-text transition-colors"
+            >
+              ← Tillbaka
+            </button>
+            <h2 className="font-semibold text-text flex-1">Preview</h2>
+            {isEditing && (
+              <div className="flex items-center gap-2 text-cyan text-sm">
+                <span className="w-2 h-2 rounded-full bg-cyan animate-pulse"></span>
+                Editing
+              </div>
+            )}
+          </div>
+          
+          {/* Modal Content */}
+          <div className="flex-1 p-4 overflow-y-auto">
+            <PreviewContent
+              currentItem={currentItem}
+              isEditing={isEditing}
+              editedContent={editedContent}
+              setEditedContent={setEditedContent}
+              previewRef={previewRef}
+              typeIcons={typeIcons}
+              getApprovalType={getApprovalType}
+              getRecipient={getRecipient}
+              getSubject={getSubject}
+              getCreatedBy={getCreatedBy}
+              formatTime={formatTime}
+            />
+          </div>
+          
+          {/* Modal Actions */}
+          <div className="px-4 py-4 border-t border-border bg-surface safe-area-bottom">
+            <ActionButtons
+              currentItem={currentItem}
+              isEditing={isEditing}
+              setIsEditing={setIsEditing}
+              handleSaveEdit={handleSaveEdit}
+              handleApprove={handleApprove}
+              handleReject={handleReject}
+              onActionComplete={() => setShowMobilePreview(false)}
+              isMobile={true}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Extracted Preview Content Component
+function PreviewContent({
+  currentItem,
+  isEditing,
+  editedContent,
+  setEditedContent,
+  previewRef,
+  typeIcons,
+  getApprovalType,
+  getRecipient,
+  getSubject,
+  getCreatedBy,
+  formatTime,
+}: {
+  currentItem: Approval;
+  isEditing: boolean;
+  editedContent: string;
+  setEditedContent: (value: string) => void;
+  previewRef: React.RefObject<HTMLTextAreaElement | null>;
+  typeIcons: Record<string, string>;
+  getApprovalType: (activity: EmbeddedActivity | null) => string;
+  getRecipient: (activity: EmbeddedActivity | null) => string;
+  getSubject: (activity: EmbeddedActivity | null) => string;
+  getCreatedBy: (activity: EmbeddedActivity | null) => string;
+  formatTime: (timestamp?: number) => string;
+}) {
+  return (
+    <div className="space-y-4">
+      {/* Type Badge */}
+      <div className="inline-flex items-center gap-2 bg-surface-2 px-3 py-1.5 rounded-full text-sm">
+        {typeIcons[getApprovalType(currentItem.activity)] || "📄"}
+        <span className="capitalize">{getApprovalType(currentItem.activity)}</span>
+      </div>
+      
+      {/* Title */}
+      <h3 className="text-xl font-semibold text-text">
+        {currentItem.activity?.title || "Untitled"}
+      </h3>
+      
+      {/* Meta Info */}
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <span className="text-text-muted">To:</span>
+          <span className="ml-2 text-text">{getRecipient(currentItem.activity)}</span>
+        </div>
+        <div>
+          <span className="text-text-muted">Subject:</span>
+          <span className="ml-2 text-text">{getSubject(currentItem.activity)}</span>
+        </div>
+        <div>
+          <span className="text-text-muted">Agent:</span>
+          <span className="ml-2 text-text">{getCreatedBy(currentItem.activity)}</span>
+        </div>
+        <div>
+          <span className="text-text-muted">Created:</span>
+          <span className="ml-2 text-text">{formatTime(currentItem.requestedAt)}</span>
+        </div>
+      </div>
+      
+      {/* Content */}
+      {isEditing ? (
+        <textarea
+          ref={previewRef}
+          value={editedContent}
+          onChange={(e) => setEditedContent(e.target.value)}
+          className="w-full h-48 md:h-64 bg-surface-2 border-2 border-cyan rounded-xl p-4 text-text resize-none focus:outline-none"
+          placeholder="Edit content..."
+        />
+      ) : (
+        <div className="bg-surface-2 rounded-xl p-4 text-text whitespace-pre-wrap leading-relaxed">
+          {currentItem.activity?.description || "No content"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Extracted Action Buttons Component
+function ActionButtons({
+  currentItem,
+  isEditing,
+  setIsEditing,
+  handleSaveEdit,
+  handleApprove,
+  handleReject,
+  onActionComplete,
+  isMobile = false,
+}: {
+  currentItem: Approval;
+  isEditing: boolean;
+  setIsEditing: (value: boolean) => void;
+  handleSaveEdit: () => Promise<void>;
+  handleApprove: (id: Id<"approvals">) => Promise<void>;
+  handleReject: (id: Id<"approvals">) => Promise<void>;
+  onActionComplete?: () => void;
+  isMobile?: boolean;
+}) {
+  const handleApproveClick = async () => {
+    await handleApprove(currentItem._id);
+    onActionComplete?.();
+  };
+
+  const handleRejectClick = async () => {
+    await handleReject(currentItem._id);
+    onActionComplete?.();
+  };
+
+  return (
+    <div className={`${isMobile ? '' : 'px-5 py-4 border-t border-border'} flex gap-2 md:gap-3 ${isMobile ? 'flex-col' : 'justify-end'}`}>
+      {isEditing ? (
+        <>
+          <button
+            onClick={() => setIsEditing(false)}
+            className="px-4 md:px-5 py-3 bg-surface-2 text-text-muted font-medium rounded-xl hover:text-text transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSaveEdit}
+            className="px-4 md:px-5 py-3 bg-cyan text-base font-medium rounded-xl hover:bg-cyan/80 transition-all hover:shadow-lg hover:shadow-cyan/20"
+          >
+            💾 Save Changes
+          </button>
+        </>
+      ) : (
+        <>
+          {isMobile ? (
+            // Mobile: Stack approve/reject, edit smaller
+            <>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleRejectClick}
+                  className="flex-1 px-4 py-3 bg-red/10 text-red font-medium rounded-xl hover:bg-red/20 transition-all border border-red/30"
+                >
+                  ❌ Reject
+                </button>
+                <button
+                  onClick={handleApproveClick}
+                  className="flex-1 px-4 py-3 bg-green text-base font-medium rounded-xl hover:bg-green/80 transition-all hover:shadow-lg hover:shadow-green/20"
+                >
+                  ✅ Approve
+                </button>
+              </div>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-surface-2 text-text-muted font-medium rounded-xl hover:bg-surface-2/80 transition-colors border border-border text-sm"
+              >
+                ✏️ Edit before sending
+              </button>
+            </>
+          ) : (
+            // Desktop: horizontal row
+            <>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-5 py-3 bg-surface-2 text-text font-medium rounded-xl hover:bg-surface-2/80 transition-colors border border-border"
+              >
+                ✏️ Edit
+              </button>
+              <button
+                onClick={handleRejectClick}
+                className="px-5 py-3 bg-red/10 text-red font-medium rounded-xl hover:bg-red/20 transition-all border border-red/30"
+              >
+                ❌ Reject
+              </button>
+              <button
+                onClick={handleApproveClick}
+                className="px-5 py-3 bg-green text-base font-medium rounded-xl hover:bg-green/80 transition-all hover:shadow-lg hover:shadow-green/20"
+              >
+                ✅ Approve
+              </button>
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }

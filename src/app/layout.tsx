@@ -37,7 +37,7 @@ export default function RootLayout({
         >
           <ConvexClientProvider>
             <Navigation />
-            <main className="ml-16 md:ml-56 min-h-screen p-6">
+            <main className="ml-0 md:ml-16 lg:ml-56 min-h-screen p-4 md:p-6 pb-24 md:pb-6">
               {children}
             </main>
             <CommandBar />

@@ -30,6 +30,7 @@ export function KanbanBoard() {
   const activities = useQuery(api.activities.list, {});
   const updateStatus = useMutation(api.activities.updateStatus);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeColumnIndex, setActiveColumnIndex] = useState(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -83,6 +84,11 @@ export function KanbanBoard() {
     updateStatus({ id: activityId, status: newStatus });
   };
 
+  // Get count for each column
+  const getColumnCount = (statuses: Status[]) => {
+    return activities.filter((a) => statuses.includes(a.status as Status)).length;
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -90,7 +96,47 @@ export function KanbanBoard() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      {/* Mobile Tab Navigation */}
+      <div className="md:hidden flex gap-1 mb-4 overflow-x-auto pb-2 -mx-4 px-4">
+        {columns.map((column, index) => {
+          const count = getColumnCount(column.statuses);
+          return (
+            <button
+              key={column.id}
+              onClick={() => setActiveColumnIndex(index)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all flex-shrink-0
+                ${activeColumnIndex === index 
+                  ? "bg-cyan/10 text-cyan border border-cyan/30" 
+                  : "bg-surface-2 text-text-muted border border-transparent"
+                }`}
+            >
+              <span>{column.icon}</span>
+              <span className="text-sm font-medium">{column.title}</span>
+              {count > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                  activeColumnIndex === index ? "bg-cyan/20" : "bg-surface"
+                }`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Mobile: Show only active column */}
+      <div className="md:hidden">
+        <KanbanColumn
+          id={columns[activeColumnIndex].id}
+          title={columns[activeColumnIndex].title}
+          icon={columns[activeColumnIndex].icon}
+          color={columns[activeColumnIndex].color}
+          activities={getActivitiesForColumn(columns[activeColumnIndex].statuses)}
+        />
+      </div>
+
+      {/* Desktop: Show all columns */}
+      <div className="hidden md:flex gap-4 overflow-x-auto pb-4">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}

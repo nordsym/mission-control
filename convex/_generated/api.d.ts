@@ -12,9 +12,11 @@ import type * as activities from "../activities.js";
 import type * as approvals from "../approvals.js";
 import type * as commands from "../commands.js";
 import type * as dailySummaries from "../dailySummaries.js";
+import type * as deals from "../deals.js";
 import type * as documents from "../documents.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
+import type * as visualEvents from "../visualEvents.js";
 
 import type {
   ApiFromModules,
@@ -27,9 +29,11 @@ declare const fullApi: ApiFromModules<{
   approvals: typeof approvals;
   commands: typeof commands;
   dailySummaries: typeof dailySummaries;
+  deals: typeof deals;
   documents: typeof documents;
   seed: typeof seed;
   settings: typeof settings;
+  visualEvents: typeof visualEvents;
 }>;
 
 /**
